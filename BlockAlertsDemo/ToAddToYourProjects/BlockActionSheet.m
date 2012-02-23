@@ -133,8 +133,7 @@ static UIFont *buttonFont = nil;
     [self addButtonWithTitle:title color:@"gray" block:block atIndex:index];
 }
 
-- (void)showInView:(UIView *)view
-{
+- (void)assembleActionSheet {
     NSUInteger i = 1;
     for (NSArray *block in _blocks)
     {
@@ -171,6 +170,11 @@ static UIFont *buttonFont = nil;
     modalBackground.contentMode = UIViewContentModeScaleToFill;
     [_view insertSubview:modalBackground atIndex:0];
     [modalBackground release];
+}
+
+- (void)showInWindow 
+{
+    [self assembleActionSheet];
     
     [[BlockBackground sharedInstance] addToMainWindow:_view];
     CGRect frame = _view.frame;
@@ -186,6 +190,36 @@ static UIFont *buttonFont = nil;
                         options:UIViewAnimationCurveEaseOut
                      animations:^{
                          [BlockBackground sharedInstance].alpha = 1.0f;
+                         _view.center = center;
+                     } completion:^(BOOL finished) {
+                         [UIView animateWithDuration:0.1
+                                               delay:0.0
+                                             options:UIViewAnimationOptionAllowUserInteraction
+                                          animations:^{
+                                              center.y += kActionSheetBounce;
+                                              _view.center = center;
+                                          } completion:nil];
+                     }];
+    
+    [self retain];
+}
+
+- (void)showInView:(UIView *)view {
+    [self assembleActionSheet];
+    
+    CGRect frame = _view.frame;
+    frame.origin.y = view.bounds.size.height;
+    frame.size.height = _height + kActionSheetBounce;
+    _view.frame = frame;
+    [view addSubview:_view];
+    
+    __block CGPoint center = _view.center;
+    center.y -= _height + kActionSheetBounce;
+    
+    [UIView animateWithDuration:0.4
+                          delay:0.0
+                        options:UIViewAnimationCurveEaseOut
+                     animations:^{
                          _view.center = center;
                      } completion:^(BOOL finished) {
                          [UIView animateWithDuration:0.1
